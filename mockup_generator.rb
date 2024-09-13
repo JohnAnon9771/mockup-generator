@@ -25,28 +25,30 @@ class MockupGenerator
     mask_normalized = @mask.copy
     mask_normalized.alpha(Magick::DeactivateAlphaChannel)
     mask_normalized.colorspace = Magick::GRAYColorspace
-
+  
     template_normalized = @template.copy
     template_normalized.alpha(Magick::DeactivateAlphaChannel)
     template_normalized.colorspace = Magick::GRAYColorspace
-
+  
     normalized_map = template_normalized.composite(mask_normalized, Magick::CenterGravity, Magick::CopyAlphaCompositeOp)
-
+  
     displacement_map = normalized_map.modulate(0.7, 1.0, 1.0)
     displacement_map.background_color = 'grey50'
     displacement_map.alpha(Magick::RemoveAlphaChannel)
-
+  
     displacement_map = displacement_map.blur_image(0, 10)
-
+  
     displacement_map.write('displacement_map.png')
   end
 
   def generate_lighting_map
     normalized_map = @template.composite(@mask, Magick::CenterGravity, Magick::CopyAlphaCompositeOp)
     normalized_map.alpha(Magick::DeactivateAlphaChannel)
+    
     lighting_map = normalized_map.modulate(0.7, 1.0, 1.0)
     lighting_map.background_color = 'grey50'
     lighting_map.alpha(Magick::RemoveAlphaChannel)
+    
     grey_image = Magick::Image.new(lighting_map.columns, lighting_map.rows) do |img|
       img.background_color = 'grey50'
     end
@@ -75,8 +77,10 @@ class MockupGenerator
     x_offset, y_offset, width, height = get_mask_bounding_box(@mask)
 
     main_image = @artwork.resize_to_fill(width, height)
+    main_image = main_image.border(1, 1, 'transparent')
+    main_image.alpha(Magick::RemoveAlphaChannel)
 
-    main_image_with_offset = Magick::Image.new(@template.columns, @template.rows) { |image| image.background_color = 'none' }
+    main_image_with_offset = Magick::Image.new(@template.columns, @template.rows) { |image| image.background_color = 'transparent' }
     main_image_with_offset = main_image_with_offset.composite(main_image, x_offset, y_offset, Magick::OverCompositeOp)
 
     displacement_map = Magick::Image.read('displacement_map.png').first
@@ -95,8 +99,8 @@ class MockupGenerator
 end
 
 # Usage
-template = "/Users/joaoalves/Documents/mockups/tshirt/T-Shirt Mock-Up Front (1).jpg"
-mask = "/Users/joaoalves/Documents/mockups/tshirt/Displacement map - Front.png"
-artwork = "/Users/joaoalves/Downloads/ada169210e884c3306c450b4b144ea90.png"
+template = "/Users/joaoalves/Documents/mockups/airpods/137510023_10344489.jpg"
+mask = "/Users/joaoalves/Documents/mockups/airpods/137510023_10344489.png"
+artwork = "/Users/joaoalves/Pictures/1369866.png"
 generator = MockupGenerator.new(template, mask, artwork)
 generator.generate
