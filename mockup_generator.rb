@@ -7,10 +7,18 @@ class MockupGenerator
     @artwork = Magick::Image.read(artwork_path).first
   end
 
+  def generate
+    generate_adjustment_map
+    generate_displacement_map
+    generate_lighting_map
+    generate_final_mockup
+  end
+
+  private
   def generate_adjustment_map
     grayscale_mask = @mask.quantize(256, Magick::GRAYColorspace)
-    @adjustment_map = @template.composite(grayscale_mask, Magick::CenterGravity, Magick::DivideSrcCompositeOp)
-    @adjustment_map.write('adjustment_map.jpg')
+    adjustment_map = @template.composite(grayscale_mask, Magick::CenterGravity, Magick::DivideSrcCompositeOp)
+    adjustment_map.write('adjustment_map.jpg')
   end
 
   def generate_displacement_map
@@ -46,37 +54,49 @@ class MockupGenerator
     lighting_map.write('lighting_map.png')
   end
 
-  def generate_final_mockup
-    main_image = @artwork.clone
+  def get_mask_bounding_box(mask)
+    bg = Magick::Image.new(mask.columns, mask.rows) { |image| image.background_color = 'black' }
 
-    main_image = main_image.border(1, 1, 'transparent')
-    main_image.alpha(Magick::RemoveAlphaChannel)
+    composite = bg.composite(mask, 0, 0, Magick::OverCompositeOp)
 
-    displacement_map = Magick::Image.read('displacement_map.png').first
-    main_image = main_image.displace(displacement_map, 20, 20)
+    composite.alpha(Magick::RemoveAlphaChannel)
 
-    lighting_map = Magick::Image.read('lighting_map.png').first
-    main_image = main_image.composite(lighting_map, Magick::NorthWestGravity, Magick::HardLightCompositeOp)
+    trimmed = composite.trim
 
-    adjustment_map = Magick::Image.read('adjustment_map.jpg').first
-    main_image = main_image.composite(adjustment_map, Magick::NorthWestGravity, Magick::MultiplyCompositeOp)
+    x_offset = trimmed.page.x
+    y_offset = trimmed.page.y
+    width = trimmed.columns
+    height = trimmed.rows
 
-    masked_image = main_image.composite(@mask, Magick::NorthWestGravity, Magick::CopyAlphaCompositeOp)
-    final_image = @template.composite(masked_image, Magick::NorthWestGravity, Magick::OverCompositeOp)
-    final_image.write('mockup.png')
+    return [x_offset, y_offset, width, height]
   end
 
-  def generate
-    generate_adjustment_map
-    generate_displacement_map
-    generate_lighting_map
-    generate_final_mockup
+  def generate_final_mockup
+    x_offset, y_offset, width, height = get_mask_bounding_box(@mask)
+
+    main_image = @artwork.resize_to_fill(width, height)
+
+    main_image_with_offset = Magick::Image.new(@template.columns, @template.rows) { |image| image.background_color = 'none' }
+    main_image_with_offset = main_image_with_offset.composite(main_image, x_offset, y_offset, Magick::OverCompositeOp)
+
+    displacement_map = Magick::Image.read('displacement_map.png').first
+    main_image_with_offset = main_image_with_offset.displace(displacement_map, 20, 20)
+
+    lighting_map = Magick::Image.read('lighting_map.png').first
+    main_image_with_offset = main_image_with_offset.composite(lighting_map, Magick::NorthWestGravity, Magick::HardLightCompositeOp)
+
+    adjustment_map = Magick::Image.read('adjustment_map.jpg').first
+    main_image_with_offset = main_image_with_offset.composite(adjustment_map, Magick::NorthWestGravity, Magick::MultiplyCompositeOp)
+
+    masked_image = main_image_with_offset.composite(@mask, Magick::NorthWestGravity, Magick::CopyAlphaCompositeOp)
+    final_image = @template.composite(masked_image, Magick::NorthWestGravity, Magick::OverCompositeOp)
+    final_image.write('mockup.png')
   end
 end
 
 # Usage
-template = "/Users/joaoalves/Downloads/T-Shirt Mock-Up Front (1).jpg"
-mask = "/Users/joaoalves/Downloads/Displacement map - Front.png"
-artwork = "/Users/joaoalves/Downloads/IMG_2692.jpg"
+template = "/Users/joaoalves/Documents/mockups/tshirt/T-Shirt Mock-Up Front (1).jpg"
+mask = "/Users/joaoalves/Documents/mockups/tshirt/Displacement map - Front.png"
+artwork = "/Users/joaoalves/Downloads/ada169210e884c3306c450b4b144ea90.png"
 generator = MockupGenerator.new(template, mask, artwork)
 generator.generate
