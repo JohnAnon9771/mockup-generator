@@ -57,13 +57,7 @@ class MockupGenerator
   end
 
   def get_mask_bounding_box(mask)
-    bg = Magick::Image.new(mask.columns, mask.rows) { |image| image.background_color = 'black' }
-
-    composite = bg.composite(mask, 0, 0, Magick::OverCompositeOp)
-
-    composite.alpha(Magick::RemoveAlphaChannel)
-
-    trimmed = composite.trim
+    trimmed = mask.trim
 
     x_offset = trimmed.page.x
     y_offset = trimmed.page.y
