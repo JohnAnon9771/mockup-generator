@@ -1,10 +1,11 @@
 require 'rmagick'
 
 class MockupGenerator
-  def initialize(template_path, mask_path, artwork_path)
+  def initialize(template_path, mask_path, artwork_path, filter)
     @template = Magick::Image.read(template_path).first
     @mask = Magick::Image.read(mask_path).first
     @artwork = Magick::Image.read(artwork_path).first
+    @filter = filter
   end
 
   def generate
@@ -49,9 +50,7 @@ class MockupGenerator
     lighting_map.background_color = 'grey50'
     lighting_map.alpha(Magick::RemoveAlphaChannel)
     
-    grey_image = Magick::Image.new(lighting_map.columns, lighting_map.rows) do |img|
-      img.background_color = 'grey50'
-    end
+    grey_image = Magick::Image.new(lighting_map.columns, lighting_map.rows) { |img| img.background_color = 'grey50' }
     lighting_map = lighting_map.composite(grey_image, Magick::CenterGravity, Magick::LightenCompositeOp)
     lighting_map.write('lighting_map.png')
   end
@@ -83,8 +82,10 @@ class MockupGenerator
     lighting_map = Magick::Image.read('lighting_map.png').first
     main_image_with_offset = main_image_with_offset.composite(lighting_map, Magick::NorthWestGravity, Magick::HardLightCompositeOp)
 
+    # When receive darken objects its recomends to use SoftLightCompositeOp
+    # When receive lighten objects its recomends to use MultiplyCompositeOp
     adjustment_map = Magick::Image.read('adjustment_map.jpg').first
-    main_image_with_offset = main_image_with_offset.composite(adjustment_map, Magick::NorthWestGravity, Magick::MultiplyCompositeOp)
+    main_image_with_offset = main_image_with_offset.composite(adjustment_map, Magick::NorthWestGravity, @filter)
 
     masked_image = main_image_with_offset.composite(@mask, Magick::NorthWestGravity, Magick::CopyAlphaCompositeOp)
     final_image = @template.composite(masked_image, Magick::NorthWestGravity, Magick::OverCompositeOp)
@@ -93,8 +94,10 @@ class MockupGenerator
 end
 
 # Usage
-template = "/Users/joaoalves/Documents/mockups/airpods/137510023_10344489.jpg"
-mask = "/Users/joaoalves/Documents/mockups/airpods/137510023_10344489.png"
-artwork = "/Users/joaoalves/Pictures/1369866.png"
-generator = MockupGenerator.new(template, mask, artwork)
+template = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1 (1).jpg"
+mask = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1.png"
+artwork = "/Users/joaoalves/Downloads/IMG_0475.jpg"
+darken_filter = Magick::SoftLightCompositeOp
+lighten_filter = Magick::MultiplyCompositeOp
+generator = MockupGenerator.new(template, mask, artwork, darken_filter)
 generator.generate
