@@ -31,20 +31,23 @@ class MockupGenerator
   def calculate_average_brightness(image)
     grayscale_image = image.quantize(256, Magick::GRAYColorspace)
   
-    histogram = grayscale_image.color_histogram
+    pixels = grayscale_image.get_pixels(0, 0, grayscale_image.columns, grayscale_image.rows)
   
     total_brightness = 0
     total_pixels = 0
   
-    histogram.each do |pixel, count|
+    pixels.each do |pixel|
+      next if pixel.alpha == Magick::QuantumRange
+
       brightness = pixel.red
-      total_brightness += brightness * count
-      total_pixels += count
+  
+      total_brightness += brightness
+      total_pixels += 1
     end
   
     if total_pixels == 0
-      Magick::QuantumRange / 2 
-    else
+      Magick::QuantumRange / 2
+    else 
       total_brightness / total_pixels
     end
   end
@@ -136,8 +139,8 @@ class MockupGenerator
 end
 
 # Usage
-template = "/Users/joaoalves/Documents/mockups/tshirt/T-Shirt Mock-Up Front.jpg"
-mask = "/Users/joaoalves/Documents/mockups/tshirt/Displacement map - Front.png"
+template = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1 (1).jpg"
+mask = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1.png"
 artwork = "/Users/joaoalves/Downloads/ada169210e884c3306c450b4b144ea90.png"
 generator = MockupGenerator.new(template, mask, artwork)
 generator.generate
