@@ -137,10 +137,3 @@ class MockupGenerator
     final_image.write('mockup.png')
   end
 end
-
-# Usage
-template = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1 (1).jpg"
-mask = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1.png"
-artwork = "/Users/joaoalves/Downloads/ada169210e884c3306c450b4b144ea90.png"
-generator = MockupGenerator.new(template, mask, artwork)
-generator.generate
