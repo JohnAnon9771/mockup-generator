@@ -1,11 +1,10 @@
 require 'rmagick'
 
 class MockupGenerator
-  def initialize(template_path, mask_path, artwork_path, filter)
+  def initialize(template_path, mask_path, artwork_path)
     @template = Magick::Image.read(template_path).first
     @mask = Magick::Image.read(mask_path).first
     @artwork = Magick::Image.read(artwork_path).first
-    @filter = filter
   end
 
   def generate
@@ -16,6 +15,40 @@ class MockupGenerator
   end
 
   private
+  def extract_masked_area(template, mask)
+    template = template.copy
+    mask = mask.copy
+
+    template.alpha(Magick::ActivateAlphaChannel)
+
+    mask = mask.quantize(256, Magick::GRAYColorspace)
+    mask.alpha(Magick::DeactivateAlphaChannel)
+
+    masked_area = template.composite(mask, Magick::NorthWestGravity, Magick::CopyAlphaCompositeOp)
+    masked_area.trim
+  end
+  
+  def calculate_average_brightness(image)
+    grayscale_image = image.quantize(256, Magick::GRAYColorspace)
+  
+    histogram = grayscale_image.color_histogram
+  
+    total_brightness = 0
+    total_pixels = 0
+  
+    histogram.each do |pixel, count|
+      brightness = pixel.red
+      total_brightness += brightness * count
+      total_pixels += count
+    end
+  
+    if total_pixels == 0
+      Magick::QuantumRange / 2 
+    else
+      total_brightness / total_pixels
+    end
+  end
+
   def generate_adjustment_map
     grayscale_mask = @mask.quantize(256, Magick::GRAYColorspace)
     adjustment_map = @template.composite(grayscale_mask, Magick::CenterGravity, Magick::DivideSrcCompositeOp)
@@ -82,10 +115,19 @@ class MockupGenerator
     lighting_map = Magick::Image.read('lighting_map.png').first
     main_image_with_offset = main_image_with_offset.composite(lighting_map, Magick::NorthWestGravity, Magick::HardLightCompositeOp)
 
-    # When receive darken objects its recomends to use SoftLightCompositeOp
-    # When receive lighten objects its recomends to use MultiplyCompositeOp
+    masked_template_area = extract_masked_area(@template, @mask)
+    average_brightness = calculate_average_brightness(masked_template_area)
+
+    threshold = Magick::QuantumRange * 0.5
+
+    if average_brightness < threshold
+      composite_operator = Magick::SoftLightCompositeOp
+    else
+      composite_operator = Magick::MultiplyCompositeOp
+    end
+
     adjustment_map = Magick::Image.read('adjustment_map.jpg').first
-    main_image_with_offset = main_image_with_offset.composite(adjustment_map, Magick::NorthWestGravity, @filter)
+    main_image_with_offset = main_image_with_offset.composite(adjustment_map, Magick::NorthWestGravity, composite_operator)
 
     masked_image = main_image_with_offset.composite(@mask, Magick::NorthWestGravity, Magick::CopyAlphaCompositeOp)
     final_image = @template.composite(masked_image, Magick::NorthWestGravity, Magick::OverCompositeOp)
@@ -94,10 +136,8 @@ class MockupGenerator
 end
 
 # Usage
-template = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1 (1).jpg"
-mask = "/Users/joaoalves/Documents/mockups/mug/Gold_Mug_Mockup_1.png"
-artwork = "/Users/joaoalves/Downloads/IMG_0475.jpg"
-darken_filter = Magick::SoftLightCompositeOp
-lighten_filter = Magick::MultiplyCompositeOp
-generator = MockupGenerator.new(template, mask, artwork, darken_filter)
+template = "/Users/joaoalves/Documents/mockups/tshirt/T-Shirt Mock-Up Front.jpg"
+mask = "/Users/joaoalves/Documents/mockups/tshirt/Displacement map - Front.png"
+artwork = "/Users/joaoalves/Downloads/ada169210e884c3306c450b4b144ea90.png"
+generator = MockupGenerator.new(template, mask, artwork)
 generator.generate
