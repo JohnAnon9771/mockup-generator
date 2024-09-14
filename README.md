@@ -10,9 +10,6 @@ MockupGenerator é uma ferramenta em Ruby que gera mockups realistas a partir de
 - [Uso](#uso)
 - [Exemplos](#exemplos)
 - [Resultados](#resultados)
-- [Contribuição](#contribuição)
-- [Licença](#licença)
-- [Contato](#contato)
 
 ## Características
 
