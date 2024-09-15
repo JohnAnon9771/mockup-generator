@@ -113,7 +113,7 @@ class MockupGenerator
     main_image_with_offset = main_image_with_offset.composite(main_image, x_offset, y_offset, Magick::OverCompositeOp)
 
     displacement_map = Magick::Image.read('displacement_map.png').first
-    main_image_with_offset = main_image_with_offset.displace(displacement_map, 20, 20)
+    main_image_with_offset = main_image_with_offset.displace(displacement_map, 20, 10)
 
     lighting_map = Magick::Image.read('lighting_map.png').first
     main_image_with_offset = main_image_with_offset.composite(lighting_map, Magick::NorthWestGravity, Magick::HardLightCompositeOp)
@@ -122,12 +122,7 @@ class MockupGenerator
     average_brightness = calculate_average_brightness(masked_template_area)
 
     threshold = Magick::QuantumRange * 0.5
-
-    if average_brightness < threshold
-      composite_operator = Magick::SoftLightCompositeOp
-    else
-      composite_operator = Magick::MultiplyCompositeOp
-    end
+    composite_operator = average_brightness < threshold ? Magick::SoftLightCompositeOp : Magick::MultiplyCompositeOp
 
     adjustment_map = Magick::Image.read('adjustment_map.jpg').first
     main_image_with_offset = main_image_with_offset.composite(adjustment_map, Magick::NorthWestGravity, composite_operator)
