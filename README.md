@@ -1,31 +1,32 @@
 # MockupGenerator
 
-MockupGenerator é uma ferramenta em Ruby que gera mockups realistas a partir de templates, máscaras e artes gráficas usando a biblioteca RMagick.
+MockupGenerator is a Ruby tool that generates realistic mockups from templates, masks, and artworks using the RMagick library.
 
-## Índice
+## Table of Contents
 
-- [Características](#características)
-- [Requisitos](#requisitos)
-- [Instalação](#instalação)
-- [Uso](#uso)
-- [Exemplos](#exemplos)
-- [Resultados](#resultados)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Results](#results)
+- [Explanation of Steps](#explanation-of-steps)
 
-## Características
+## Features
 
-- Gera mapas de ajuste, deslocamento e iluminação para criar mockups realistas.
-- Suporta personalização de templates e artes gráficas.
-- Utiliza algoritmos para calcular o brilho médio e ajustar o mockup de acordo.
+- Generates adjustment, displacement, and lighting maps to create realistic mockups.
+- Supports customization of templates and artworks.
+- Uses algorithms to calculate average brightness and adjust the mockup accordingly.
 
-## Requisitos
+## Requirements
 
-- Ruby (versão 2.5 ou superior)
-- Gem `rmagick`
-- ImageMagick instalado no sistema
+- Ruby (version 2.5 or higher)
+- `rmagick` gem
+- ImageMagick installed on the system
 
-## Instalação
+## Installation
 
-1. **Instale o ImageMagick** no seu sistema:
+1. **Install ImageMagick** on your system:
 
    - **macOS**:
 
@@ -39,81 +40,81 @@ MockupGenerator é uma ferramenta em Ruby que gera mockups realistas a partir de
      sudo apt-get install imagemagick
      ```
 
-2. **Instale a gem RMagick**:
+2. **Install the RMagick gem**:
 
    ```bash
    gem install rmagick
    ```
 
-3. **Clone o repositório**:
+3. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/JohnAnon9771/MockupGenerator.git
+   git clone https://github.com/your_username/MockupGenerator.git
    ```
 
-4. **Navegue até o diretório do projeto**:
+4. **Navigate to the project directory**:
 
    ```bash
    cd MockupGenerator
    ```
 
-## Uso
+## Usage
 
 ```ruby
 require 'rmagick'
 require './mockup_generator'
 
-# Caminhos para os arquivos
-template = "/caminho/para/template.jpg"
-mask = "/caminho/para/mask.png"
-artwork = "/caminho/para/artwork.png"
+# Paths to the files
+template = "/path/to/template.jpg"
+mask = "/path/to/mask.png"
+artwork = "/path/to/artwork.png"
 
-# Inicializa o gerador de mockups
+# Initialize the mockup generator
 generator = MockupGenerator.new(template, mask, artwork)
 
-# Gera o mockup
+# Generate the mockup
 generator.generate
 ```
 
-Os arquivos gerados serão salvos no diretório atual:
+The generated files will be saved in the current directory:
 
 - `adjustment_map.jpg`
 - `displacement_map.png`
 - `lighting_map.png`
 - `mockup.png`
 
-## Exemplos
+## Examples
 
 ### Template
 
-Imagem base onde a arte será aplicada.
+Base image where the artwork will be applied.
 
 ![Template](assets/mug/template.jpg)
 
-### Máscara
+### Mask
 
-Define a área onde a arte será posicionada no template.
+Defines the area where the artwork will be positioned on the template.
 
-![Máscara](assets/mug/mask.png)
+![Mask](assets/mug/mask.png)
 
-### Arte
+### Artwork
 
-A imagem que será inserida no mockup.
+The image that will be inserted into the mockup.
 
-![Arte](assets/mug/artwork.png)
+![Artwork](assets/mug/artwork.png)
 
-## Resultados
+## Results
 
-Após executar o script, você obterá um mockup com a arte aplicada de forma realista.
+After running the script, you will get a mockup with the artwork applied realistically.
 
-![Mockup Gerado](assets/mug/mockup.png)
+![Generated Mockup](assets/mug/mockup.png)
 
-## Explicação dos Passos
+## Explanation of Steps
 
-1. **Geração do Mapa de Ajuste**: Cria um mapa que ajusta o brilho e contraste da arte para combinar com o template.
+1. **Generation of Adjustment Map**: Creates a map that adjusts the brightness and contrast of the artwork to match the template.
 
-2. **Geração do Mapa de Deslocamento**: Aplica um efeito de deslocamento para simular a textura e contornos do template na arte.
+2. **Generation of Displacement Map**: Applies a displacement effect to simulate the texture and contours of the template on the artwork.
 
-3. **Geração do Mapa de Iluminação**: Ajusta a iluminação da arte para corresponder à iluminação do template.
+3. **Generation of Lighting Map**: Adjusts the lighting of the artwork to correspond with the lighting of the template.
 
-4. **Geração do Mockup Final**: Combina todos os mapas e aplica a arte no template, produzindo o mockup final.
+4. **Generation of the Final Mockup**: Combines all the maps and applies the artwork to the template, producing the final mockup.
