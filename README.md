@@ -64,24 +64,38 @@ MockupGenerator is a Ruby tool that generates realistic mockups from templates, 
 require 'rmagick'
 require './mockup_generator'
 
-# Paths to the files
 template = "/path/to/template.jpg"
 mask = "/path/to/mask.png"
 artwork = "/path/to/artwork.png"
 
-# Initialize the mockup generator
+# By default the generator writes the final composite to `mockup.png`
+# in the current working directory.
 generator = MockupGenerator.new(template, mask, artwork)
+image = generator.generate
 
-# Generate the mockup
-generator.generate
+puts "Final mockup stored at: #{image.filename}" # => ".../mockup.png"
+
+# You can customise the output directory, base filename and whether the
+# intermediate maps are persisted by passing keywords either to `new` or `generate`.
+custom_generator = MockupGenerator.new(
+  template,
+  mask,
+  artwork,
+  output_dir: "/path/to/output",
+  basename: "summer_campaign",
+  save_intermediate: true
+)
+
+# Keyword arguments on `generate` override the defaults set on initialization.
+custom_image = custom_generator.generate(save_intermediate: false)
+
+puts custom_image.filename # => "/path/to/output/summer_campaign.png"
 ```
 
-The generated files will be saved in the current directory:
-
-- `adjustment_map.jpg`
-- `displacement_map.png`
-- `lighting_map.png`
-- `mockup.png`
+When `save_intermediate` is `true`, the adjustment, displacement and lighting maps
+are written alongside the final mockup using the provided base name (for example,
+`summer_campaign_adjustment_map.jpg`). If it is `false`—the default—only the final
+composite image is saved.
 
 ## Examples
 
